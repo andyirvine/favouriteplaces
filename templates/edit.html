@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Place — Our Favourite Places{% endblock %}
+
+{% block content %}
+<section class="submit-section">
+  <div class="form-container">
+    <div class="edit-header">
+      <h2>Edit Your Place</h2>
+      <a href="{{ url_for('account') }}" class="btn-secondary">&larr; Back to My Places</a>
+    </div>
+
+    <form id="edit-form" method="POST" action="{{ url_for('edit_place', place_id=place.id) }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="latitude"  id="latitude"  value="{{ place.latitude }}">
+      <input type="hidden" name="longitude" id="longitude" value="{{ place.longitude }}">
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="author_name">Your Name</label>
+          <input type="text" id="author_name" name="author_name"
+                 value="{{ place.author_name }}" maxlength="200">
+        </div>
+        <div class="form-field">
+          <label for="country">Country <span class="required">*</span></label>
+          <input type="text" id="country" name="country" required
+                 value="{{ place.country }}" maxlength="100">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="place_name">Place Name <span class="required">*</span></label>
+        <input type="text" id="place_name" name="place_name" required
+               value="{{ place.place_name }}" maxlength="300">
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="flora">Flora <span class="hint">(comma-separated)</span></label>
+          <input type="text" id="flora" name="flora"
+                 value="{{ place.flora | join(', ') }}">
+        </div>
+        <div class="form-field">
+          <label for="fauna">Fauna <span class="hint">(comma-separated)</span></label>
+          <input type="text" id="fauna" name="fauna"
+                 value="{{ place.fauna | join(', ') }}">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="description">Your Description <span class="required">*</span></label>
+        <textarea id="description" name="description" rows="6" required
+                  maxlength="5000">{{ place.description }}</textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="feeling">How does this place make you feel? <span class="hint">(a few words)</span></label>
+        <input type="text" id="feeling" name="feeling"
+               value="{{ place.feeling or '' }}" maxlength="300">
+      </div>
+
+      <!-- Map location picker with existing pin -->
+      <div class="form-field">
+        <label>
+          Location on Map
+          <span class="hint"> — drag the pin to adjust, or click to move it</span>
+        </label>
+        <div id="location-map" class="location-map has-pin"></div>
+        <p class="location-hint has-pin" id="location-hint">
+          Pin set at {{ "%.4f"|format(place.latitude) }}°, {{ "%.4f"|format(place.longitude) }}°. Drag to adjust.
+        </p>
+      </div>
+
+      <div class="form-actions" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{{ url_for('account') }}" class="btn-secondary">Cancel</a>
+        <form method="POST" action="{{ url_for('delete_place', place_id=place.id) }}"
+              style="margin-left:auto"
+              onsubmit="return confirm('Delete this place? This cannot be undone.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-danger">Delete this place</button>
+        </form>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<!-- Pass existing coordinates to JS -->
+<script>
+  const EXISTING_LAT = {{ place.latitude }};
+  const EXISTING_LNG = {{ place.longitude }};
+</script>
+<script src="{{ url_for('static', filename='js/edit.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Explore — Our Favourite Places{% endblock %}
+
+{% block content %}
+<section class="explore-section">
+
+  <div class="filters">
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Search places, flora, fauna, or feelings…" autocomplete="off">
+    </div>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="filter-country">Country</label>
+        <select id="filter-country">
+          <option value="">All Countries</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-flora">Flora</label>
+        <select id="filter-flora">
+          <option value="">All Flora</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-fauna">Fauna</label>
+        <select id="filter-fauna">
+          <option value="">All Fauna</option>
+        </select>
+      </div>
+      <button id="clear-filters" class="btn-secondary">Clear Filters</button>
+    </div>
+    <p class="results-count"><span id="count">0</span> places found</p>
+  </div>
+
+  <div id="cards" class="card-grid">
+    <div class="loading-state">Loading places…</div>
+  </div>
+
+</section>
+
+<!-- Detail modal -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <button class="modal-close" aria-label="Close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

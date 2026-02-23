@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Share Your Place — Our Favourite Places{% endblock %}
+
+{% block content %}
+<section class="submit-section">
+  <div class="form-container">
+    <h2>Share Your Favourite Place</h2>
+    <p class="form-intro">Tell us about a place that makes your heart sing. Where is it? What grows there? What creatures call it home? How does it make you feel?</p>
+
+    <form id="submit-form" method="POST" action="{{ url_for('submit') }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="latitude" id="latitude" value="">
+      <input type="hidden" name="longitude" id="longitude" value="">
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="author_name">Your Name</label>
+          <input type="text" id="author_name" name="author_name"
+                 value="{{ user.name if user else '' }}"
+                 placeholder="e.g. Maria Santos" maxlength="200">
+        </div>
+        <div class="form-field">
+          <label for="country">Country <span class="required">*</span></label>
+          <input type="text" id="country" name="country" required
+                 placeholder="e.g. Brazil" maxlength="100">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="place_name">Place Name <span class="required">*</span></label>
+        <input type="text" id="place_name" name="place_name" required
+               placeholder="e.g. Chapada Diamantina, Bahia" maxlength="300">
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="flora">Flora <span class="hint">(comma-separated)</span></label>
+          <input type="text" id="flora" name="flora"
+                 placeholder="e.g. Bromeliad, Candeia tree, Sempre-viva flower">
+        </div>
+        <div class="form-field">
+          <label for="fauna">Fauna <span class="hint">(comma-separated)</span></label>
+          <input type="text" id="fauna" name="fauna"
+                 placeholder="e.g. Maned wolf, Hyacinth macaw">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="description">Your Description <span class="required">*</span></label>
+        <textarea id="description" name="description" rows="6" required
+                  placeholder="Describe your favourite place. What does it look like? Sound like? Smell like? What makes it special to you?" maxlength="5000"></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="feeling">How does this place make you feel? <span class="hint">(a few words)</span></label>
+        <input type="text" id="feeling" name="feeling"
+               placeholder="e.g. Adventurous and amazed" maxlength="300">
+      </div>
+
+      <!-- Map location picker -->
+      <div class="form-field">
+        <label>
+          Location on Map <span class="required">*</span>
+          <span class="hint"> — click the map to pin your place</span>
+        </label>
+        <div id="location-map" class="location-map"></div>
+        <p class="location-hint" id="location-hint">No location selected. Click the map to place a pin.</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="submit-btn">Share Your Place</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/submit.js') }}"></script>
+{% endblock %}

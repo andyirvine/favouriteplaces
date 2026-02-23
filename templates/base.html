@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Our Favourite Places{% endblock %}</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <a href="{{ url_for('home') }}" class="site-title-link">
+      <h1>Our Favourite Places</h1>
+    </a>
+    <p class="subtitle">Stories of cherished places from around the world</p>
+
+    <div class="header-nav">
+      <nav>
+        <a href="{{ url_for('home') }}"
+           class="nav-link {% if request.path == '/' %}active{% endif %}">Explore</a>
+        <a href="{{ url_for('map_page') }}"
+           class="nav-link {% if request.path == '/map' %}active{% endif %}">Map</a>
+        <a href="{{ url_for('submit') }}"
+           class="nav-link {% if request.path == '/submit' %}active{% endif %}">Share Yours</a>
+        {% if current_user %}
+        <a href="{{ url_for('account') }}"
+           class="nav-link {% if request.path == '/account' %}active{% endif %}">My Places</a>
+        {% endif %}
+      </nav>
+
+      <div class="auth-area">
+        {% if current_user %}
+          <div class="user-info">
+            <a href="{{ url_for('account') }}" class="user-profile-link">
+              {% if current_user.picture %}
+                <img src="{{ current_user.picture }}" alt="{{ current_user.name }}" class="user-avatar">
+              {% endif %}
+              <span class="user-name">{{ current_user.name }}</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-signout">Sign out</a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn-signin">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Sign in with Google
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          {{ message }}
+          <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <p>Our Favourite Places &mdash; A collection of the world's most cherished places</p>
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
