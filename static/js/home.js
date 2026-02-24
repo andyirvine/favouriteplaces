@@ -92,6 +92,7 @@ function renderCards() {
 
   cardsEl.innerHTML = filtered.map(p => `
     <article class="card" data-id="${p.id}" role="button" tabindex="0" aria-label="View ${esc(p.place_name)}">
+      ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.place_name)}" class="card-image">` : ''}
       <div class="card-header">
         <div class="card-place">${esc(p.place_name)}</div>
         <div class="card-country">${esc(p.country)}</div>
@@ -120,6 +121,7 @@ function openModal(id) {
   if (!p) return;
 
   modalBody.innerHTML = `
+    ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.place_name)}" class="modal-image">` : ''}
     <div class="modal-place">${esc(p.place_name)}</div>
     <div class="modal-country">${esc(p.country)}</div>
     <div class="modal-description">${esc(p.description)}</div>

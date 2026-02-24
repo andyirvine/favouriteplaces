@@ -3,6 +3,8 @@ import json
 from functools import wraps
 from datetime import datetime
 
+import cloudinary
+import cloudinary.uploader
 from flask import (
     Flask, render_template, redirect, url_for,
     session, request, jsonify, flash
@@ -13,6 +15,36 @@ from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 
 load_dotenv()
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+    secure=True,
+)
+
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+
+
+def upload_image(file):
+    """Upload an image file to Cloudinary. Returns the secure URL or None."""
+    if not file or file.filename == '':
+        return None
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        return None
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            folder='favplace',
+            transformation=[
+                {'width': 1200, 'height': 800, 'crop': 'limit',
+                 'quality': 'auto', 'fetch_format': 'auto'}
+            ],
+        )
+        return result.get('secure_url')
+    except Exception:
+        return None
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-change-in-production')
@@ -67,6 +99,7 @@ class Place(db.Model):
     fauna = db.Column(db.JSON, nullable=False, default=list)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
+    image_url = db.Column(db.String(1000), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -81,6 +114,7 @@ class Place(db.Model):
             'fauna': self.fauna or [],
             'latitude': self.latitude,
             'longitude': self.longitude,
+            'image_url': self.image_url or '',
             'created_at': self.created_at.isoformat() if self.created_at else '',
         }
 
@@ -155,6 +189,8 @@ def submit():
         flora_list = [f.strip() for f in flora_raw.split(',') if f.strip()][:10]
         fauna_list = [f.strip() for f in fauna_raw.split(',') if f.strip()][:10]
 
+        image_url = upload_image(request.files.get('image'))
+
         place = Place(
             user_id=user.id,
             author_name=author_name[:200],
@@ -166,6 +202,7 @@ def submit():
             fauna=fauna_list,
             latitude=lat,
             longitude=lng,
+            image_url=image_url,
         )
         db.session.add(place)
         db.session.commit()
@@ -228,6 +265,13 @@ def edit_place(place_id):
         place.fauna       = [f.strip() for f in fauna_raw.split(',') if f.strip()][:10]
         place.latitude    = lat
         place.longitude   = lng
+
+        if request.form.get('remove_image'):
+            place.image_url = None
+        else:
+            new_url = upload_image(request.files.get('image'))
+            if new_url:
+                place.image_url = new_url
 
         db.session.commit()
         flash(f'"{place.place_name}" has been updated.', 'success')
@@ -315,6 +359,13 @@ def logout():
 
 with app.app_context():
     db.create_all()
+    from sqlalchemy import text, inspect as sa_inspect
+    inspector = sa_inspect(db.engine)
+    existing_cols = [c['name'] for c in inspector.get_columns('places')]
+    if 'image_url' not in existing_cols:
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE places ADD COLUMN image_url VARCHAR(1000)'))
+            conn.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)

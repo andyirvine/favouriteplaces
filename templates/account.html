@@ -33,6 +33,9 @@
     <div class="account-places">
       {% for place in places %}
         <div class="account-card">
+          {% if place.image_url %}
+            <img src="{{ place.image_url }}" alt="{{ place.place_name }}" class="account-card-image">
+          {% endif %}
           <div class="account-card-body">
             <div class="account-card-main">
               <div class="account-card-place">{{ place.place_name }}</div>

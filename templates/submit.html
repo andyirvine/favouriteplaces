@@ -8,7 +8,7 @@
     <h2>Share Your Favourite Place</h2>
     <p class="form-intro">Tell us about a place that makes your heart sing. Where is it? What grows there? What creatures call it home? How does it make you feel?</p>
 
-    <form id="submit-form" method="POST" action="{{ url_for('submit') }}" novalidate>
+    <form id="submit-form" method="POST" action="{{ url_for('submit') }}" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="latitude" id="latitude" value="">
       <input type="hidden" name="longitude" id="longitude" value="">
@@ -56,6 +56,11 @@
         <label for="feeling">How does this place make you feel? <span class="hint">(a few words)</span></label>
         <input type="text" id="feeling" name="feeling"
                placeholder="e.g. Adventurous and amazed" maxlength="300">
+      </div>
+
+      <div class="form-field">
+        <label for="image">Photo <span class="hint">(optional — max 10 MB)</span></label>
+        <input type="file" id="image" name="image" accept="image/*" class="file-input">
       </div>
 
       <!-- Map location picker -->

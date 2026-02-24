@@ -10,7 +10,7 @@
       <a href="{{ url_for('account') }}" class="btn-secondary">&larr; Back to My Places</a>
     </div>
 
-    <form id="edit-form" method="POST" action="{{ url_for('edit_place', place_id=place.id) }}" novalidate>
+    <form id="edit-form" method="POST" action="{{ url_for('edit_place', place_id=place.id) }}" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="latitude"  id="latitude"  value="{{ place.latitude }}">
       <input type="hidden" name="longitude" id="longitude" value="{{ place.longitude }}">
@@ -57,6 +57,20 @@
         <label for="feeling">How does this place make you feel? <span class="hint">(a few words)</span></label>
         <input type="text" id="feeling" name="feeling"
                value="{{ place.feeling or '' }}" maxlength="300">
+      </div>
+
+      <div class="form-field">
+        <label for="image">Photo <span class="hint">(optional)</span></label>
+        {% if place.image_url %}
+          <div class="current-image-wrap">
+            <img src="{{ place.image_url }}" alt="Current photo" class="current-image-thumb">
+            <label class="remove-image-label">
+              <input type="checkbox" name="remove_image" value="1"> Remove photo
+            </label>
+          </div>
+          <p class="hint" style="font-size:0.82rem;margin:0.4rem 0">Upload a new photo to replace the current one.</p>
+        {% endif %}
+        <input type="file" id="image" name="image" accept="image/*" class="file-input">
       </div>
 
       <!-- Map location picker with existing pin -->
