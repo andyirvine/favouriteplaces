@@ -51,6 +51,7 @@ header {
   color: var(--white);
   padding: 2rem 1.5rem 1.5rem;
   text-align: center;
+  position: relative;
 }
 
 .header-content {
@@ -107,7 +108,109 @@ nav {
   border-color: rgba(255, 255, 255, 0.65);
 }
 
-/* Auth area */
+/* Account dropdown */
+
+.account-dropdown-wrap {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 200;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: var(--white);
+  padding: 0.4rem 0.85rem;
+  border-radius: 2rem;
+  font-size: 0.88rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.account-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.account-chevron {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.account-btn[aria-expanded="true"] .account-chevron {
+  transform: rotate(180deg);
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  min-width: 230px;
+  overflow: hidden;
+}
+
+.account-dropdown-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.dropdown-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dropdown-email {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-top: 0.1rem;
+}
+
+.account-dropdown-links {
+  padding: 0.4rem 0;
+}
+
+.dropdown-link {
+  display: block;
+  padding: 0.65rem 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: background 0.15s;
+}
+
+.dropdown-link:hover,
+.dropdown-link.active {
+  background: var(--green-pale);
+  color: var(--green-dark);
+}
+
+.dropdown-signout {
+  color: var(--text-light);
+  border-top: 1px solid #eee;
+  margin-top: 0.25rem;
+}
+
+/* Auth area (legacy, kept for signin button) */
 
 .auth-area {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
