@@ -102,7 +102,7 @@ class Place(db.Model):
     image_url = db.Column(db.String(1000), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def to_dict(self):
+    def to_dict(self, fav_ids=None):
         return {
             'id': self.id,
             'author_name': self.author_name,
@@ -115,8 +115,19 @@ class Place(db.Model):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'image_url': self.image_url or '',
+            'is_favourited': self.id in fav_ids if fav_ids is not None else False,
             'created_at': self.created_at.isoformat() if self.created_at else '',
         }
+
+
+class Favourite(db.Model):
+    __tablename__ = 'favourites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    place_id = db.Column(db.Integer, db.ForeignKey('places.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    __table_args__ = (db.UniqueConstraint('user_id', 'place_id'),)
 
 
 # ── Auth helpers ───────────────────────────────────────────────────────────────
@@ -297,11 +308,48 @@ def delete_place(place_id):
     return redirect(url_for('account'))
 
 
+@app.route('/favourites')
+@login_required
+def favourites():
+    user = get_current_user()
+    fav_rows = Favourite.query.filter_by(user_id=user.id).order_by(Favourite.created_at.desc()).all()
+    fav_place_ids = [f.place_id for f in fav_rows]
+    place_map = {p.id: p for p in Place.query.filter(Place.id.in_(fav_place_ids)).all()}
+    places = [place_map[pid] for pid in fav_place_ids if pid in place_map]
+    return render_template('favourites.html', user=user, places=places)
+
+
+@app.route('/place/<int:place_id>/favourite', methods=['POST'])
+def toggle_favourite(place_id):
+    user = get_current_user()
+    if not user:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'login_required'}), 401
+        flash('Please sign in to favourite places.', 'info')
+        return redirect(url_for('login'))
+
+    fav = Favourite.query.filter_by(user_id=user.id, place_id=place_id).first()
+    if fav:
+        db.session.delete(fav)
+        db.session.commit()
+        favourited = False
+    else:
+        db.session.add(Favourite(user_id=user.id, place_id=place_id))
+        db.session.commit()
+        favourited = True
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'favourited': favourited})
+    return redirect(request.referrer or url_for('favourites'))
+
+
 @app.route('/api/places')
 @csrf.exempt
 def api_places():
+    user = get_current_user()
+    fav_ids = {f.place_id for f in Favourite.query.filter_by(user_id=user.id).all()} if user else set()
     places = Place.query.order_by(Place.created_at.desc()).all()
-    response = jsonify([p.to_dict() for p in places])
+    response = jsonify([p.to_dict(fav_ids=fav_ids) for p in places])
     response.headers['Cache-Control'] = 'no-cache'
     return response
 

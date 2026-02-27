@@ -435,6 +435,37 @@ nav {
 
 .card-header {
   margin-bottom: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  flex-shrink: 0;
+  line-height: 1;
+  border-radius: 50%;
+  transition: transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fav-btn:hover {
+  transform: scale(1.25);
+}
+
+.fav-card {
+  cursor: default;
+}
+
+.fav-card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .card-place {

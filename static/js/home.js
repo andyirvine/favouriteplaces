@@ -1,5 +1,50 @@
 // ── Home page: fetch places, filter, render cards ──────────────────────────────
 
+function csrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+function heartIcon(filled) {
+  return filled
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="#e05a7a" stroke="#e05a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+}
+
+async function toggleFavourite(placeId, btn) {
+  if (!window.isLoggedIn) {
+    window.location.href = '/login';
+    return;
+  }
+  const wasFaved = btn.dataset.faved === 'true';
+  btn.dataset.faved = !wasFaved;
+  btn.innerHTML = heartIcon(!wasFaved);
+  btn.title = !wasFaved ? 'Remove from favourites' : 'Add to favourites';
+  const place = allPlaces.find(p => p.id === placeId);
+  if (place) place.is_favourited = !wasFaved;
+
+  try {
+    const res = await fetch(`/place/${placeId}/favourite`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    if (res.status === 401) {
+      btn.dataset.faved = wasFaved;
+      btn.innerHTML = heartIcon(wasFaved);
+      if (place) place.is_favourited = wasFaved;
+      window.location.href = '/login';
+      return;
+    }
+    const data = await res.json();
+    btn.dataset.faved = data.favourited;
+    btn.innerHTML = heartIcon(data.favourited);
+    if (place) place.is_favourited = data.favourited;
+  } catch {
+    btn.dataset.faved = wasFaved;
+    btn.innerHTML = heartIcon(wasFaved);
+    if (place) place.is_favourited = wasFaved;
+  }
+}
+
 let allPlaces = [];
 let filtered = [];
 
@@ -94,8 +139,11 @@ function renderCards() {
     <article class="card" data-id="${p.id}" role="button" tabindex="0" aria-label="View ${esc(p.place_name)}">
       ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.place_name)}" class="card-image">` : ''}
       <div class="card-header">
-        <div class="card-place">${esc(p.place_name)}</div>
-        <div class="card-country">${esc(p.country)}</div>
+        <div>
+          <div class="card-place">${esc(p.place_name)}</div>
+          <div class="card-country">${esc(p.country)}</div>
+        </div>
+        <button class="fav-btn ${p.is_favourited ? 'faved' : ''}" data-id="${p.id}" data-faved="${p.is_favourited}" title="${p.is_favourited ? 'Remove from favourites' : 'Add to favourites'}">${heartIcon(p.is_favourited)}</button>
       </div>
       ${p.feeling ? `<div class="card-feeling">&ldquo;${esc(p.feeling)}&rdquo;</div>` : ''}
       <div class="card-description">${esc(p.description)}</div>
@@ -108,9 +156,22 @@ function renderCards() {
   `).join('');
 
   cardsEl.querySelectorAll('.card').forEach(card => {
-    const open = () => openModal(parseInt(card.dataset.id));
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') open(); });
+    card.addEventListener('click', e => {
+      if (e.target.closest('.fav-btn')) return;
+      openModal(parseInt(card.dataset.id));
+    });
+    card.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.fav-btn')) {
+        openModal(parseInt(card.dataset.id));
+      }
+    });
+  });
+
+  cardsEl.querySelectorAll('.fav-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleFavourite(parseInt(btn.dataset.id), btn);
+    });
   });
 }
 
