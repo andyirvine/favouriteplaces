@@ -195,6 +195,12 @@ function openModal(id) {
     <div class="modal-tags">
       ${p.fauna.map(f => `<span class="tag fauna-tag">${esc(f)}</span>`).join('') || '<span style="color:var(--text-light);font-size:0.85rem">None listed</span>'}
     </div>
+    <div class="modal-fav-row">
+      <button class="fav-btn modal-fav-btn ${p.is_favourited ? 'faved' : ''}" data-id="${p.id}" data-faved="${p.is_favourited}" title="${p.is_favourited ? 'Remove from favourites' : 'Add to favourites'}">
+        ${heartIcon(p.is_favourited)}
+        <span class="modal-fav-label">${p.is_favourited ? 'Favourited' : 'Add to favourites'}</span>
+      </button>
+    </div>
     <div class="modal-author">
       Shared by ${esc(p.author_name)}
       <br>
@@ -205,6 +211,22 @@ function openModal(id) {
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
   modal.querySelector('.modal-close').focus();
+
+  const modalFavBtn = modalBody.querySelector('.modal-fav-btn');
+  if (modalFavBtn) {
+    modalFavBtn.addEventListener('click', async () => {
+      await toggleFavourite(p.id, modalFavBtn);
+      // sync label
+      const label = modalFavBtn.querySelector('.modal-fav-label');
+      if (label) label.textContent = modalFavBtn.dataset.faved === 'true' ? 'Favourited' : 'Add to favourites';
+      // sync the card in the grid
+      const cardBtn = cardsEl.querySelector(`.fav-btn[data-id="${p.id}"]`);
+      if (cardBtn) {
+        cardBtn.dataset.faved = modalFavBtn.dataset.faved;
+        cardBtn.innerHTML = heartIcon(modalFavBtn.dataset.faved === 'true');
+      }
+    });
+  }
 }
 
 function closeModal() {

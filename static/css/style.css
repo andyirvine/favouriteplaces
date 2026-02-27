@@ -673,6 +673,37 @@ nav {
   text-align: right;
 }
 
+.modal-fav-row {
+  margin-top: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.modal-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid #eee;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text-light);
+  background: #fafaf8;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.modal-fav-btn:hover {
+  background: var(--green-pale);
+  border-color: var(--green-light);
+  transform: none;
+}
+
+.modal-fav-btn.faved {
+  border-color: #f4c6d0;
+  background: #fff0f3;
+  color: #c0425a;
+}
+
 .modal-map-link {
   display: inline-block;
   margin-top: 0.6rem;
