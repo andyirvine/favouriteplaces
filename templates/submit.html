@@ -59,8 +59,9 @@
       </div>
 
       <div class="form-field">
-        <label for="image">Photo <span class="hint">(optional — max 10 MB)</span></label>
-        <input type="file" id="image" name="image" accept="image/*" class="file-input">
+        <label for="images">Photos <span class="hint">(optional — up to 5, max 10 MB each)</span></label>
+        <input type="file" id="images" name="images" accept="image/*" multiple class="file-input">
+        <div id="image-preview" class="image-preview-strip"></div>
       </div>
 
       <!-- Map location picker -->
@@ -83,4 +84,18 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/submit.js') }}"></script>
+<script>
+(function () {
+  const input = document.getElementById('images');
+  const preview = document.getElementById('image-preview');
+  input.addEventListener('change', function () {
+    const files = Array.from(this.files).slice(0, 5);
+    if (files.length === 0) { preview.innerHTML = ''; return; }
+    const extra = this.files.length > 5 ? ' (only first 5 will be uploaded)' : '';
+    preview.innerHTML = files.map((f, i) =>
+      `<div class="preview-thumb"><img src="${URL.createObjectURL(f)}" alt="Preview ${i + 1}"></div>`
+    ).join('') + `<span class="preview-count">${files.length}/5 selected${extra}</span>`;
+  });
+}());
+</script>
 {% endblock %}

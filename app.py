@@ -100,9 +100,11 @@ class Place(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(1000), nullable=True)
+    images = db.Column(db.JSON, nullable=False, default=list)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self, fav_ids=None):
+        imgs = self.images or []
         return {
             'id': self.id,
             'author_name': self.author_name,
@@ -114,7 +116,8 @@ class Place(db.Model):
             'fauna': self.fauna or [],
             'latitude': self.latitude,
             'longitude': self.longitude,
-            'image_url': self.image_url or '',
+            'image_url': imgs[0] if imgs else '',
+            'images': imgs,
             'is_favourited': self.id in fav_ids if fav_ids is not None else False,
             'created_at': self.created_at.isoformat() if self.created_at else '',
         }
@@ -200,7 +203,7 @@ def submit():
         flora_list = [f.strip() for f in flora_raw.split(',') if f.strip()][:10]
         fauna_list = [f.strip() for f in fauna_raw.split(',') if f.strip()][:10]
 
-        image_url = upload_image(request.files.get('image'))
+        url_list = [url for url in (upload_image(f) for f in request.files.getlist('images')[:5]) if url]
 
         place = Place(
             user_id=user.id,
@@ -213,7 +216,8 @@ def submit():
             fauna=fauna_list,
             latitude=lat,
             longitude=lng,
-            image_url=image_url,
+            images=url_list,
+            image_url=url_list[0] if url_list else None,
         )
         db.session.add(place)
         db.session.commit()
@@ -277,12 +281,24 @@ def edit_place(place_id):
         place.latitude    = lat
         place.longitude   = lng
 
-        if request.form.get('remove_image'):
-            place.image_url = None
-        else:
-            new_url = upload_image(request.files.get('image'))
-            if new_url:
-                place.image_url = new_url
+        # Remove images by index
+        remove_indexes = set()
+        for idx_str in request.form.getlist('remove_image'):
+            try:
+                remove_indexes.add(int(idx_str))
+            except ValueError:
+                pass
+
+        existing = [img for i, img in enumerate(place.images or []) if i not in remove_indexes]
+        slots_left = 5 - len(existing)
+        if slots_left > 0:
+            for f in request.files.getlist('images')[:slots_left]:
+                url = upload_image(f)
+                if url:
+                    existing.append(url)
+
+        place.images = existing
+        place.image_url = existing[0] if existing else None
 
         db.session.commit()
         flash(f'"{place.place_name}" has been updated.', 'success')
@@ -414,6 +430,23 @@ with app.app_context():
         with db.engine.connect() as conn:
             conn.execute(text('ALTER TABLE places ADD COLUMN image_url VARCHAR(1000)'))
             conn.commit()
+    if 'images' not in existing_cols:
+        dialect = db.engine.dialect.name
+        col_def = "JSONB DEFAULT '[]'::jsonb" if dialect == 'postgresql' else "TEXT DEFAULT '[]'"
+        with db.engine.connect() as conn:
+            conn.execute(text(f'ALTER TABLE places ADD COLUMN images {col_def}'))
+            conn.commit()
+    # Backfill images list from image_url for existing records
+    needs_commit = False
+    for place in Place.query.all():
+        if not place.images and place.image_url:
+            place.images = [place.image_url]
+            needs_commit = True
+        elif place.images is None:
+            place.images = []
+            needs_commit = True
+    if needs_commit:
+        db.session.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)

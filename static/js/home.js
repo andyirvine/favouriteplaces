@@ -177,12 +177,28 @@ function renderCards() {
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
 
+function buildCarousel(images, placeName) {
+  if (!images || images.length === 0) return '';
+  if (images.length === 1) {
+    return `<img src="${esc(images[0])}" alt="${esc(placeName)}" class="modal-image">`;
+  }
+  const dots = images.map((_, i) =>
+    `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Go to image ${i + 1}"></button>`
+  ).join('');
+  return `<div class="carousel">
+    <img src="${esc(images[0])}" alt="${esc(placeName)}" class="carousel-img">
+    <button class="carousel-prev" aria-label="Previous image">&#8592;</button>
+    <button class="carousel-next" aria-label="Next image">&#8594;</button>
+    <div class="carousel-dots">${dots}</div>
+  </div>`;
+}
+
 function openModal(id) {
   const p = allPlaces.find(x => x.id === id);
   if (!p) return;
 
   modalBody.innerHTML = `
-    ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.place_name)}" class="modal-image">` : ''}
+    ${buildCarousel(p.images, p.place_name)}
     <div class="modal-place">${esc(p.place_name)}</div>
     <div class="modal-country">${esc(p.country)}</div>
     <div class="modal-description">${esc(p.description)}</div>
@@ -207,6 +223,25 @@ function openModal(id) {
       <a href="/map#place-${p.id}" class="modal-map-link">View on map &rarr;</a>
     </div>
   `;
+
+  // Wire up carousel navigation
+  const carousel = modalBody.querySelector('.carousel');
+  if (carousel) {
+    const imgs = p.images;
+    let current = 0;
+    const imgEl = carousel.querySelector('.carousel-img');
+    const dots = carousel.querySelectorAll('.carousel-dot');
+
+    function goTo(n) {
+      current = (n + imgs.length) % imgs.length;
+      imgEl.src = imgs[current];
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    carousel.querySelector('.carousel-prev').addEventListener('click', () => goTo(current - 1));
+    carousel.querySelector('.carousel-next').addEventListener('click', () => goTo(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+  }
 
   modal.hidden = false;
   document.body.style.overflow = 'hidden';

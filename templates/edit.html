@@ -60,17 +60,24 @@
       </div>
 
       <div class="form-field">
-        <label for="image">Photo <span class="hint">(optional)</span></label>
-        {% if place.image_url %}
-          <div class="current-image-wrap">
-            <img src="{{ place.image_url }}" alt="Current photo" class="current-image-thumb">
-            <label class="remove-image-label">
-              <input type="checkbox" name="remove_image" value="1"> Remove photo
-            </label>
+        <label>Photos <span class="hint">(optional — up to 5 total)</span></label>
+        {% if place.images %}
+          <div class="existing-images-strip">
+            {% for img in place.images %}
+              <div class="existing-img-wrap">
+                <img src="{{ img }}" alt="Photo {{ loop.index }}" class="existing-img-thumb">
+                <label class="remove-img-label">
+                  <input type="checkbox" name="remove_image" value="{{ loop.index0 }}"> Remove
+                </label>
+              </div>
+            {% endfor %}
           </div>
-          <p class="hint" style="font-size:0.82rem;margin:0.4rem 0">Upload a new photo to replace the current one.</p>
+          <p class="hint" style="font-size:0.82rem;margin:0.4rem 0 0.6rem">
+            {{ place.images|length }}/5 slots used. Tick boxes above to remove, or add more below.
+          </p>
         {% endif %}
-        <input type="file" id="image" name="image" accept="image/*" class="file-input">
+        <input type="file" id="images" name="images" accept="image/*" multiple class="file-input">
+        <div id="image-preview" class="image-preview-strip"></div>
       </div>
 
       <!-- Map location picker with existing pin -->
@@ -107,4 +114,18 @@
   const EXISTING_LNG = {{ place.longitude }};
 </script>
 <script src="{{ url_for('static', filename='js/edit.js') }}"></script>
+<script>
+(function () {
+  const input = document.getElementById('images');
+  const preview = document.getElementById('image-preview');
+  input.addEventListener('change', function () {
+    const files = Array.from(this.files).slice(0, 5);
+    if (files.length === 0) { preview.innerHTML = ''; return; }
+    const extra = this.files.length > 5 ? ' (only first 5 will be uploaded)' : '';
+    preview.innerHTML = files.map((f, i) =>
+      `<div class="preview-thumb"><img src="${URL.createObjectURL(f)}" alt="Preview ${i + 1}"></div>`
+    ).join('') + `<span class="preview-count">${files.length}/5 selected${extra}</span>`;
+  });
+}());
+</script>
 {% endblock %}
