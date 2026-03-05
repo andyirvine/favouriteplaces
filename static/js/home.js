@@ -72,6 +72,11 @@ async function loadPlaces() {
   try {
     const res = await fetch('/api/places');
     allPlaces = await res.json();
+    // Shuffle order on each page load
+    for (let i = allPlaces.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allPlaces[i], allPlaces[j]] = [allPlaces[j], allPlaces[i]];
+    }
     populateFilters();
     applyFilters();
   } catch (err) {
