@@ -8,8 +8,11 @@
   <div class="filters">
     <div class="search-bar">
       <input type="text" id="search" placeholder="Search places, flora, fauna, or feelings…" autocomplete="off">
+      <button id="filter-toggle" class="btn-secondary" aria-expanded="false" aria-controls="filter-row">
+        <span class="filter-toggle-icon">☰</span> Filters
+      </button>
     </div>
-    <div class="filter-row">
+    <div class="filter-row" id="filter-row" hidden>
       <div class="filter-group">
         <label for="filter-country">Country</label>
         <select id="filter-country">

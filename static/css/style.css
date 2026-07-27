@@ -346,10 +346,14 @@ nav {
 
 .search-bar {
   margin-bottom: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
 }
 
 .search-bar input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 0.85rem 1.2rem;
   border: 1px solid #ddd;
   border-radius: var(--radius);
@@ -365,11 +369,29 @@ nav {
   box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.15);
 }
 
+#filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#filter-toggle[aria-expanded="true"] {
+  background: var(--green-dark);
+  color: var(--white);
+  border-color: var(--green-dark);
+}
+
 .filter-row {
   display: flex;
   gap: 1rem;
   align-items: flex-end;
   flex-wrap: wrap;
+}
+
+.filter-row[hidden] {
+  display: none;
 }
 
 .filter-group {

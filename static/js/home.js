@@ -280,6 +280,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 // ── Event listeners ────────────────────────────────────────────────────────────
 
+const filterToggle = document.getElementById('filter-toggle');
+const filterRow    = document.getElementById('filter-row');
+filterToggle.addEventListener('click', () => {
+  const expanded = filterToggle.getAttribute('aria-expanded') === 'true';
+  filterToggle.setAttribute('aria-expanded', String(!expanded));
+  filterRow.hidden = expanded;
+});
+
 searchInput.addEventListener('input', applyFilters);
 countryFilter.addEventListener('change', applyFilters);
 floraFilter.addEventListener('change', applyFilters);
