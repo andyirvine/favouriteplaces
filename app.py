@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -48,6 +49,11 @@ def upload_image(file):
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-change-in-production')
+
+# Behind Fly.io's (or any) TLS-terminating proxy, trust the forwarded
+# scheme/host so url_for(_external=True) builds https OAuth redirect URIs.
+if os.getenv('FLASK_ENV') == 'production':
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # Render provides postgres:// but SQLAlchemy requires postgresql://
 _db_url = os.getenv('DATABASE_URL', 'sqlite:///favplace.db')
@@ -449,4 +455,4 @@ with app.app_context():
         db.session.commit()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=int(os.environ.get('PORT', 5000)))
